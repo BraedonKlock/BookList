@@ -1,0 +1,171 @@
+package BestSeller;
+import java.time.LocalDate;
+import java.util.Scanner;
+
+/*BookManager will start the application
+ * it will call the manageBookList method which will include
+ * all the actions to manage the list ex: load, show,
+ * add, edit, delete, save, search, exit
+*/
+public class BookManager 
+{	
+	private final static String DEFAULT_FILE_NAME = "amazonbooks.csv";
+
+	private final static Scanner scanner = new Scanner(System.in);
+	
+	private static BookList bookList = new BookList();
+
+	public static void main(String[] args) 
+	{		
+		//Displaying menu options to user
+		BookManager bookManager = new BookManager();
+		try {
+			BookManager.manageBookList();
+		} catch (BookException e) {
+			new BookException("Failed to manage book list");		
+		}
+	}
+	
+	//this method calls the showMenu method and calls a method based off user input
+	private static void manageBookList() throws BookException {
+		int option;
+		do {
+			showMenu();
+			try {
+				option = Integer.parseInt(scanner.nextLine());
+				switch (option) {
+				case 1: BookManager.loadBookList(); break;
+				case 2: BookManager.printBookList(); break;
+				case 3: BookManager.addbook(); break;
+				case 4: BookManager.editBook(); break;
+				case 5: BookManager.deleteBook(); break;
+				case 6: BookManager.saveBookList(); break;
+				case 7: BookManager.searchBook(); break;
+				case 8: BookManager.exit(); break;
+				default: System.out.println("\n**Invalid option. Try again.**\n");
+				}
+			} catch (NumberFormatException e) {
+				new BookException("Invalid entry. Enter a number between 1 and 8.");
+				option = 0;
+			}
+		} while (option != 8);
+	}
+	
+	public static void showMenu()
+	{
+		System.out.println("|| Menu - Best Sellers OOP/A1 ||\n"
+				+ "|| Team: Andrew Paiva - Braedon Klock ||\n"
+				+ "================================\n"
+				+ "1. Load Booklist\n"
+				+ "2. Show Booklist\n"
+				+ "3. Add book\n"
+				+ "4. Edit a book\n"
+				+ "5. Delete a book\n"
+				+ "6. Save booklist\n"
+				+ "7. Search in the list\n"
+				+ "8. Exit\n"
+				+ "Choose an option:");
+	}
+	
+	public static void loadBookList() throws BookException
+	{
+		System.out.println("Name of file to create booklist(Type \"Exit\" or press Enter for default file \"amazonbooks.csv\")");
+		String fileName = scanner.nextLine();
+		
+		if(fileName.equals(""))
+			fileName = DEFAULT_FILE_NAME;//Shortcut to load amazonbooks.csv if nothing entered
+		if (fileName.equalsIgnoreCase("Exit")) {
+			System.out.println("\n***Exiting***\n");
+			return;
+		}
+		bookList.loadBookList(fileName);
+	}
+	
+	public static void printBookList()
+	{
+		bookList.printBookList();
+	}
+	
+	public static void addbook() throws BookException
+	{
+		System.out.print("Title: ");
+		String title = scanner.nextLine();
+		System.out.print("Author(s): ");
+		String author = scanner.nextLine();
+		System.out.print("Original language: ");
+		String language = scanner.nextLine();
+		
+		int published;
+		while (true) {
+            System.out.print("Year first published: ");
+            String input = scanner.nextLine().trim(); // Trim spaces
+
+            if (input.isEmpty()) {
+                System.out.println("\n***Must enter a year***\n");
+                continue;
+            }
+
+            try {
+                published = Integer.parseInt(input);
+                int currentYear = LocalDate.now().getYear();
+
+                if (published > currentYear) {
+                    System.out.println("\n***Invalid year! Enter year earlier than current year***\n");
+                } else {
+                    System.out.println("\n***Valid year***\n");
+                    break; // exit the loop
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("\n***Input must be a valid number***\n");
+            }
+        }
+		
+		System.out.print("Sales in millions: ");
+		float sales = Float.parseFloat(scanner.nextLine());
+		System.out.print("Genre: ");
+		String genre = scanner.nextLine();
+		
+		int index = bookList.bestSellers.size();
+		
+		Book book = new Book(title, author, language, published, sales, genre, index);
+		
+		bookList.addBook(book);
+	}
+		
+	public static void editBook() throws BookException
+	{
+		bookList.editBook();
+	}
+	
+	public static void deleteBook() throws BookException
+	{
+		bookList.deleteBook();
+	}
+	
+	public static void saveBookList() throws BookException
+	{
+		bookList.saveBookList();
+	}
+	
+	public static void searchBook()
+	{
+		// Check if book list is empty
+		if (bookList.bestSellers.isEmpty()) 
+		{
+			System.out.println("\nBooklist is empty...\n");
+			return;
+		}
+		
+		System.out.println("Enter data you want to search: ");
+		
+		String dataToSearch = scanner.nextLine();
+		
+		bookList.searchBook(dataToSearch);
+	}
+	
+	public static void exit()
+	{
+		System.out.println("Exiting...");
+	}
+}

@@ -1,0 +1,371 @@
+package BestSeller;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class BookList 
+{	
+	private final int NUMCOLS = 6; //Columns of book data
+		
+	ArrayList<Book> bestSellers = new ArrayList<Book>();
+		
+	/* Creation of BookList - Takes in the csv file as a parameter
+	 * Using buffer reader read the csv file and for each line, creates a book
+	 * with the proper data to be included in the list
+	 * using a loop to add all of the books to booklist
+	 * BookException if fileName does not exist
+	 */
+	public ArrayList<Book> loadBookList(String fileName) throws BookException
+	{				
+		try {//Reading csv file
+			BufferedReader reader = new BufferedReader(new FileReader(fileName));
+			
+			int index = 0;
+			
+			String line;
+			
+			try { if(reader.readLine() != null);
+				while((line = reader.readLine()) != null)
+				{
+					String[] fields = parseLine(line);
+					addBook(createBook(fields, index++));
+				}
+				reader.close();
+			} catch (IOException e) {
+				new BookException("Error loading the book list: " + e.getMessage());
+			}
+		} catch (FileNotFoundException e) {
+			new BookException("File not found");
+		}
+		
+		printBookList();
+		System.out.println("\n***Book list created successfully!***\n");
+		return bestSellers;
+	}
+	
+	//Shows the booklist to the user
+	public void printBookList() 
+	{
+		// Check if book list is empty
+		if (bestSellers.isEmpty()) 
+		{
+			System.out.println("\n***Booklist is empty***\n");
+			return;
+		}
+		
+		System.out.println("===BOOKLIST===");
+		
+		for(Book book : bestSellers)
+			System.out.println(book.toString());
+	}
+	
+	/*Overloaded function to pass in a booklist, used for when we dont want to modify the actual booklist but we want to pring a list of a few books
+	 * like when we use the searchBook method
+	*/
+	public void printBookList(ArrayList<Book> bookList) 
+	{
+		System.out.println("===BOOKLIST===");
+		
+		for(Book book : bookList)
+			System.out.println(book.toString());
+	}
+	
+	//Add book to booklist and checks for invalid book data(ex. empty string/invalid year/sales)
+	public void addBook(Book b) throws BookException
+	{
+		if(b != null)
+		{				
+			bestSellers.add(b);
+			System.out.println("\n***Book added successfully***\n");
+		}
+		else
+			new BookException("\n***Error adding book***\n");
+	}
+	
+	//Edits the book using the index(position of book/which book we're editing) and input given by the user
+	public Book editBook() throws BookException
+	{
+			// Check if book list is empty
+	    	if (bestSellers.isEmpty()) 
+	    	{
+	    		new BookException("***No books available to edit.***");
+	    		return null;
+	    	}
+		
+		    Scanner scanner = new Scanner(System.in);
+		    // Ask the user for the row number to edit
+		    System.out.print("\nEnter the row number of the book you want to edit: ");
+		    int index;
+		    
+		    try {
+		        index = scanner.nextInt(); // Convert user-friendly input (1-based) to array index (0-based)
+		        scanner.nextLine(); // Consume the leftover newline character
+		    } catch (Exception e) {
+		    	new BookException("***Invalid input! Please enter a valid number***");
+		        return null;
+		    }
+		    // Validate index
+		    if (index < 0 || index >= bestSellers.size()) 
+		    {
+		    	new BookException("***Invalid row number! Please try again***");
+		        return null;
+		    }
+		    // Get the existing book
+		    Book bookToEdit = bestSellers.get(index);
+		    System.out.println("\nEditing Book: " + bookToEdit.toString());
+		    // Ask for new values (press Enter to keep old values)
+		    System.out.print("\nNew Title (or press Enter to keep '" + bookToEdit.getTitle() + "'): ");
+		    String newTitle = scanner.nextLine();
+		    newTitle = newTitle.isEmpty() ? bookToEdit.getTitle() : newTitle;
+		    System.out.print("New Author (or press Enter to keep '" + bookToEdit.getAuthor() + "'): ");
+		    String newAuthor = scanner.nextLine();
+		    newAuthor = newAuthor.isEmpty() ? bookToEdit.getAuthor() : newAuthor;
+		    System.out.print("New Original Language (or press Enter to keep '" + bookToEdit.getOgLanguage() + "'): ");
+		    String newOgLanguage = scanner.nextLine();
+		    newOgLanguage = newOgLanguage.isEmpty() ? bookToEdit.getOgLanguage() : newOgLanguage;
+		    System.out.print("New First Published Year (or press Enter to keep '" + bookToEdit.getFirstPublished() + "'): ");
+		    String newFirstPublishedInput = scanner.nextLine();
+		    int newFirstPublished = newFirstPublishedInput.isEmpty() ? bookToEdit.getFirstPublished()
+		            : Integer.parseInt(newFirstPublishedInput);
+		    System.out.print("New Sales (Millions) (or press Enter to keep '" + bookToEdit.getSalesInMillions() + "'): ");
+		    String newSalesMillionsInput = scanner.nextLine();
+		    float newSalesMillions = newSalesMillionsInput.isEmpty() ? bookToEdit.getSalesInMillions()
+		            : Float.parseFloat(newSalesMillionsInput);
+		    System.out.print("New Genre (or press Enter to keep '" + bookToEdit.getGenre() + "'): ");
+		    String newGenre = scanner.nextLine();
+		    newGenre = newGenre.isEmpty() ? bookToEdit.getGenre() : newGenre;
+		    
+		    if(!isBookDataValid(new Book(newTitle, newAuthor, newOgLanguage, newFirstPublished, newSalesMillions, newGenre, index)))
+		    	return null;
+		    //If book data entered by user was valid then we can update the book
+		    
+		    // Update book details
+		    bookToEdit.setTitle(newTitle);
+		    bookToEdit.setAuthor(newAuthor);
+		    bookToEdit.setOgLanguage(newOgLanguage);
+		    bookToEdit.setFirstPublished(newFirstPublished);
+		    bookToEdit.setSalesInMillions(newSalesMillions);
+		    bookToEdit.setGenre(newGenre);
+		    
+		    System.out.println("\n***Book updated successfully!***\n");
+		    return bookToEdit;
+		}
+
+
+	/*Using the index of book in the booklist delete it from the list and then update list/indexes
+	 * to maintain the sequence	
+	 */
+	public void deleteBook() throws BookException
+	{
+		    // Check if book list is empty
+		    if (bestSellers.isEmpty()) 
+		    {
+		    	new BookException("\n***No books available to delete***\n");
+		        return;
+		    }
+		    
+		    Scanner scanner = new Scanner(System.in);
+
+		    // Display available books with index numbers
+		    System.out.println("\nAvailable Books:");
+		    for (int i = 0; i < bestSellers.size(); i++) 
+		    {
+		        System.out.println("" + bestSellers.get(i).toString());
+		    }
+
+		    // Ask the user for the row number to delete
+		    int index;
+		    while (true) 
+		    {
+		        System.out.print("\nEnter the row number of the book you want to delete: ");
+		        String input = scanner.nextLine();
+
+		        try {
+		            index = Integer.parseInt(input); // Convert 1-based to 0-based index
+		            if (index < 0 || index >= bestSellers.size()) 
+		            {
+		            	new BookException("Invalid row number! Please enter a number between 1 and " + bestSellers.size());
+		            } 
+		            else 
+		            {
+		                break; // Valid input, exit loop
+		            }
+		        } catch (NumberFormatException e) {
+		        	new BookException("***Invalid input! Please enter a numeric row number***");
+		        }
+		    }
+
+		    // Confirm deletion
+		    Book bookToDelete = bestSellers.get(index);
+		    System.out.println("\nAre you sure you want to delete this book?");
+		    System.out.println(bookToDelete.toString());
+		    System.out.print("Type 'yes' to confirm, or press Enter to cancel: ");
+		    String confirmation = scanner.nextLine();
+
+		    if (!confirmation.equalsIgnoreCase("yes")) 
+		    {
+		        System.out.println("\n***Deletion canceled***");
+		        return;
+		    }
+
+		    // Remove book from the list
+		    bestSellers.remove(index);
+		    System.out.println("\n***Book deleted successfully!***\n");
+
+		    // Optional: Display updated book list
+		    System.out.println("\nUpdated Book List:");
+		    for (int i = 0; i < bestSellers.size(); i++) 
+		    {
+		        System.out.println("" + bestSellers.get(i).toString());
+		    }
+
+	}
+	/* Save the csv file/overwriting the old csv with the updated booklist
+	 * Or creating a new file if we specify a new name
+	 * Uses booklist to write to filewriter in order to save them to the csv
+	 */
+	public void saveBookList() throws BookException
+	{
+			// Check if book list is empty
+			if (bestSellers.isEmpty()) 
+	    	{
+				new BookException("\n***No booklist to save***\n");
+				return;
+	    	}
+		
+		    Scanner scanner = new Scanner(System.in);
+
+		    // asking the user to enter the filename
+		    System.out.print("Enter the name of the file you want to save the book list as (e.g., books.csv): ");
+		    //reading user input and storing it to variable
+		    String fileName = scanner.nextLine();
+
+		    try (FileWriter writer = new FileWriter(fileName)) {
+		        //writting the header of the CSV file
+		        writer.append("Title,Author(s),Original Language,First Published,Sales (Millions),Genre\n");
+
+		        // Writing the book details to the CSV file
+		        for (Book book : bestSellers) 
+		        {
+		            writer.append(book.getTitle()).append(",");
+		            writer.append(book.getAuthor()).append(",");
+		            writer.append(book.getOgLanguage()).append(",");
+		            writer.append(String.valueOf(book.getFirstPublished())).append(",");
+		            writer.append(String.valueOf(book.getSalesInMillions())).append(",");
+		            writer.append(book.getGenre() == null ? "" : (book.getGenre())).append("\n");
+		        }
+
+		        System.out.println("\n***Book list saved successfully to " + fileName + "***\n");
+		    } catch (IOException e) {
+		    	new BookException("Error saving the book list: " + e.getMessage());
+		    }
+		}
+
+	/*Using data sent as the parameter, will search all books that contain the data listed in the book
+	 * and return every book that contains that data in any of its fields
+	 */
+	public void searchBook(String data) 
+	{		
+		ArrayList<Book> foundBooks = new ArrayList<Book>();
+		
+		for(Book book : bestSellers)
+		{
+			if(book.toString().contains(data.toLowerCase()) && data != "")
+			{
+				foundBooks.add(book);
+			}
+		}
+		
+		printBookList(foundBooks);
+	}
+	
+	//Creates an instance of Book. Nothing but genre can be null(year must be valid and sales could be 0 but not negative)
+	public Book createBook(String[] fields, int index) throws BookException
+	{
+		
+		String genre = fields[5];
+		if(genre == "") genre = null;
+		
+		Book book = new Book(fields[0], fields[1], fields[2], Integer.parseInt(fields[3]), 
+				Float.parseFloat(fields[4]), genre, index);
+		
+		if(!isBookDataValid(book))//If data isnt valid return null
+			return null;
+		
+		return book;
+	}
+	
+	//Checks if the book data is valid so we can call this method where needed to check for valid data
+	public boolean isBookDataValid(Book b) 
+	{
+		if(b.getTitle() == "")
+		{
+			new BookException("Book must have a title."); return false;
+		}
+		else if(b.getAuthor() == "")
+		{
+			new BookException("Book must have an author."); return false;
+		}
+		else if(b.getOgLanguage() == "")
+		{
+			new BookException("Book must have a language."); return false;
+		}
+		else if(b.getFirstPublished() < 0 || b.getFirstPublished() > 2025)
+		{
+			new BookException("Invalid published year. Must be between 0 and 2025."); return false;
+		}
+		else if(b.getSalesInMillions() < 0)
+		{
+			new BookException("Book sales cannot be negative."); return false;
+		}
+		
+		return true;
+	}
+	
+	//Using the index given will return the book from booklist
+	public Book findBookByIndex(int index)
+	{
+		Book book = bestSellers.get(index);
+		
+		return book;
+	}
+	
+	
+	// Method to parse each line into fields
+    public String[] parseLine(String line) 
+    {
+        String[] fields = new String[NUMCOLS];
+        int index = 0;
+        String field = "";
+        boolean inQuotes = false;
+        
+        for (int i = 0; i < line.length(); ++i) {
+            char ch = line.charAt(i);
+
+            // Handle quotes
+            if (ch == '"') {
+                inQuotes = !inQuotes; // Toggle inQuotes flag
+            }
+            // Handle commas (outside of quotes)
+            else if (ch == ',' && !inQuotes) {
+                fields[index] = field.trim();
+                field = "";  // Reset the field
+                index++;
+            }
+            // Add character to field if not comma
+            else {
+                field += ch;
+            }
+        }
+        
+        // Add the last field (after the loop)
+        fields[index] = field.trim();
+        return fields;
+    }
+}
+

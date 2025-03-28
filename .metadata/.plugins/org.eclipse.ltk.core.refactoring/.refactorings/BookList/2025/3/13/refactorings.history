@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;BestSeller.BookManaager&apos; to &apos;BookManager&apos;&#x0D;&#x0A;- Original project: &apos;BookList&apos;&#x0D;&#x0A;- Original element: &apos;BestSeller.BookManaager&apos;&#x0D;&#x0A;- Renamed element: &apos;BestSeller.BookManager&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;BookManaager&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;BestSeller{BookManaager.java[BookManaager" matchStrategy="1" name="BookManager" qualified="false" references="true" similarDeclarations="false" stamp="1743166995415" textual="false" version="1.0"/>
+</session>

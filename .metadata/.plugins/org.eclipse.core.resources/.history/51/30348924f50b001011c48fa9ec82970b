@@ -1,0 +1,375 @@
+package BestSeller;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+/**
+ * The BookList class is responsible for managing a list of Book objects.
+ * It allows the user to load books from a CSV file, display them, add new books,
+ * edit existing ones, delete books, search through the list, and save the list
+ * back to a file. It also includes methods to check if the book data is valid
+ * before adding or updating a book. This class handles all the core functionality
+ * for working with the book list, while the BookManager class handles user input
+ * and menu navigation.
+ */
+
+public class BookList 
+{	
+	private final int NUMCOLS = 6; // Expected number of columns per line in the CSV
+	Scanner scanner = new Scanner(System.in);
+	ArrayList<Book> bestSellers = new ArrayList<Book>(); // Stores the list of books
+	
+	/**
+	 * Loads a book list from a CSV file.
+	 * @param fileName The name of the CSV file
+	 * @return An ArrayList of Book objects
+	 * @throws BookException if file can't be read or books can't be created
+	 */
+	public ArrayList<Book> loadBookList(String fileName) throws BookException
+	{				
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(fileName)); // Try to open file
+			int index = 0; // Index of each book in the list
+			String line;
+
+			try { 
+				if(reader.readLine() != null); // Skip the header line
+				while((line = reader.readLine()) != null) {
+					String[] fields = parseLine(line); // Parse the line into fields
+					addBook(createBook(fields, index++)); // Create and add book
+				}
+			} catch (IOException e) {
+				new BookException("Error loading the book list: " + e.getMessage());
+			}
+		} catch (FileNotFoundException e) {
+			new BookException("File not found");
+		}
+		
+		printBookList(); // Show all loaded books
+		System.out.println("\n***Book list created successfully!***\n");
+		return bestSellers;
+	}
+	
+	// Prints the current book list
+	public void printBookList() 
+	{
+		if (bestSellers.isEmpty()) {
+			System.out.println("\n***Booklist is empty***\n");
+			return;
+		}
+		System.out.println("===BOOKLIST===");
+		for(Book book : bestSellers)
+			System.out.println(book.toString());
+	}
+	
+	// Overloaded method: prints a given list of books
+	public void printBookList(ArrayList<Book> bookList) 
+	{
+		System.out.println("===BOOKLIST===");
+		for(Book book : bookList)
+			System.out.println(book.toString());
+	}
+	
+	/**
+	 * Adds a new book to the list if it's valid.
+	 */
+	public void addBook(Book b) throws BookException
+	{
+		if(b != null) {				
+			bestSellers.add(b);
+			System.out.println("\n***Book added successfully***\n");
+		} else {
+			new BookException("\n***Error adding book***\n");
+		}
+	}
+	
+	/**
+	 * Allows the user to edit a book by entering its index.
+	 * Provides validation for input and keeps existing values if none are entered.
+	 */
+	public Book editBook() throws BookException
+	{
+	    if (bestSellers.isEmpty()) {
+	    	new BookException("***No books available to edit.***");
+	    	return null;
+	    }
+	    
+	    int index;
+	    while (true) {
+	        System.out.print("\nEnter the row number of the book you want to delete: ");
+	        String input = scanner.nextLine();
+
+	        try {
+	            index = Integer.parseInt(input);
+	            if (index < 0 || index >= bestSellers.size()) {
+	            	new BookException("Invalid row number! Please enter a number between 1 and " + bestSellers.size());
+	            } else {
+	                break;
+	            }
+	        } catch (NumberFormatException e) {
+	        	new BookException("***Invalid input! Please enter a numeric row number***");
+	        }
+	    }
+
+	    Book bookToEdit = bestSellers.get(index); // Get the selected book
+	    System.out.println("\nEditing Book: " + bookToEdit.toString());
+
+	    // Prompt user to enter new or keep existing data
+	    System.out.print("\nNew Title (or press Enter to keep '" + bookToEdit.getTitle() + "'): ");
+	    String newTitle = scanner.nextLine();
+	    newTitle = newTitle.isEmpty() ? bookToEdit.getTitle() : newTitle;
+
+	    System.out.print("New Author (or press Enter to keep '" + bookToEdit.getAuthor() + "'): ");
+	    String newAuthor = scanner.nextLine();
+	    newAuthor = newAuthor.isEmpty() ? bookToEdit.getAuthor() : newAuthor;
+
+	    System.out.print("New Original Language (or press Enter to keep '" + bookToEdit.getOgLanguage() + "'): ");
+	    String newOgLanguage = scanner.nextLine();
+	    newOgLanguage = newOgLanguage.isEmpty() ? bookToEdit.getOgLanguage() : newOgLanguage;
+	    
+	    // Validate published year
+	    int newFirstPublished;
+	    while (true) {
+	        System.out.print("New First Published Year (or press Enter to keep '" + bookToEdit.getFirstPublished() + "'): ");
+	        String input = scanner.nextLine().trim();
+
+	        if (input.isEmpty()) {
+	            newFirstPublished = bookToEdit.getFirstPublished();
+	            break;
+	        }
+	        try {
+	            newFirstPublished = Integer.parseInt(input);
+	            int currentYear = LocalDate.now().getYear();
+	            if (newFirstPublished > currentYear) {
+	                System.out.println("\n***Invalid year! Enter year earlier than current year***\n");
+	            } else {
+	                System.out.println("\n***Valid year***\n");
+	                break;
+	            }
+	        } catch (NumberFormatException e) {
+	            System.out.println("\n***Input must be a valid number***\n");
+	        }
+	    }
+	    
+	    // Validate sales
+	    float newSalesMillions;
+	    while (true) {
+	        System.out.print("New Sales (Millions) (or press Enter to keep '" + bookToEdit.getSalesInMillions() + "'): ");
+	        String input = scanner.nextLine().trim();
+
+	        if (input.isEmpty()) {
+	            newSalesMillions = bookToEdit.getSalesInMillions();
+	            break;
+	        }
+
+	        try {
+	            newSalesMillions = Float.parseFloat(input);
+	            if (newSalesMillions < 0) {
+	                System.out.println("\n***Invalid number. Number must be 0 or greater***\n");
+	            } else {
+	                System.out.println("\n***Valid Number***\n");
+	                break;
+	            }
+	        } catch (NumberFormatException e) {
+	            System.out.println("\\n***Input must be a valid number***\\n");
+	        }
+	    }
+
+	    System.out.print("New Genre (or press Enter to keep '" + bookToEdit.getGenre() + "'): ");
+	    String newGenre = scanner.nextLine();
+	    newGenre = newGenre.isEmpty() ? bookToEdit.getGenre() : newGenre;
+
+	    // Final validation before updating
+	    if(!isBookDataValid(new Book(newTitle, newAuthor, newOgLanguage, newFirstPublished, newSalesMillions, newGenre, index)))
+	    	return null;
+
+	    // Apply changes
+	    bookToEdit.setTitle(newTitle);
+	    bookToEdit.setAuthor(newAuthor);
+	    bookToEdit.setOgLanguage(newOgLanguage);
+	    bookToEdit.setFirstPublished(newFirstPublished);
+	    bookToEdit.setSalesInMillions(newSalesMillions);
+	    bookToEdit.setGenre(newGenre);
+
+	    System.out.println("\n***Book updated successfully!***\n");
+	    return bookToEdit;
+	}
+
+	/**
+	 * Deletes a book from the list using user-provided index.
+	 */
+	public void deleteBook() throws BookException
+	{
+	    if (bestSellers.isEmpty()) {
+	    	new BookException("\n***No books available to delete***\n");
+	        return;
+	    }
+
+	    System.out.println("\nAvailable Books:");
+	    for (int i = 0; i < bestSellers.size(); i++) {
+	        System.out.println("" + bestSellers.get(i).toString());
+	    }
+
+	    int index;
+	    while (true) {
+	        System.out.print("\nEnter the row number of the book you want to delete: ");
+	        String input = scanner.nextLine();
+
+	        try {
+	            index = Integer.parseInt(input);
+	            if (index < 0 || index >= bestSellers.size()) {
+	            	new BookException("Invalid row number! Please enter a number between 1 and " + bestSellers.size());
+	            } else {
+	                break;
+	            }
+	        } catch (NumberFormatException e) {
+	        	new BookException("***Invalid input! Please enter a numeric row number***");
+	        }
+	    }
+
+	    Book bookToDelete = bestSellers.get(index);
+	    System.out.println("\n***Are you sure you want to delete this book?***");
+	    System.out.println(bookToDelete.toString());
+	    System.out.print("\nType 'yes' to confirm, or press Enter to cancel: ");
+	    String confirmation = scanner.nextLine();
+
+	    if (!confirmation.equalsIgnoreCase("yes")) {
+	        System.out.println("\n***Deletion canceled***\n");
+	        return;
+	    }
+
+	    bestSellers.remove(index);
+	    System.out.println("\n***Book deleted successfully!***\n");
+
+	    // Optional: show updated list
+	    System.out.println("\nUpdated Book List:");
+	    for (int i = 0; i < bestSellers.size(); i++) {
+	        System.out.println("" + bestSellers.get(i).toString());
+	    }
+	}
+
+	/**
+	 * Saves the current book list to a CSV file.
+	 */
+	public void saveBookList() throws BookException
+	{
+		if (bestSellers.isEmpty()) {
+			new BookException("\n***No booklist to save***\n");
+			return;
+		}
+		
+		String fileName;
+		while(true) {
+			System.out.print("Enter the name of the file you want to save the book list as (e.g., books.csv): ");
+			fileName = scanner.nextLine();
+			
+			if (fileName.isEmpty()) {
+				new BookException("\n***Invalid name! Name can't be empty***\n");
+			} else {
+				break;
+			}
+		}
+	    
+	    try (FileWriter writer = new FileWriter(fileName)) {
+	        // Write header
+	        writer.append("Title,Author(s),Original Language,First Published,Sales (Millions),Genre\n");
+
+	        // Write each book's data
+	        for (Book book : bestSellers) {
+	            writer.append(book.getTitle()).append(",");
+	            writer.append(book.getAuthor()).append(",");
+	            writer.append(book.getOgLanguage()).append(",");
+	            writer.append(String.valueOf(book.getFirstPublished())).append(",");
+	            writer.append(String.valueOf(book.getSalesInMillions())).append(",");
+	            writer.append(book.getGenre() == null ? "" : book.getGenre()).append("\n");
+	        }
+
+	        System.out.println("\n***Book list saved successfully to " + fileName + "***\n");
+	    } catch (IOException e) {
+	    	new BookException("Error saving the book list: " + e.getMessage());
+	    }
+	}
+
+	/**
+	 * Searches for books that contain the provided keyword in any field.
+	 */
+	public void searchBook(String data) 
+	{		
+		ArrayList<Book> foundBooks = new ArrayList<Book>();
+		
+		for(Book book : bestSellers) {
+			if(book.toString().contains(data.toLowerCase()) && !data.isEmpty()) {
+				foundBooks.add(book);
+			}
+		}
+		
+		printBookList(foundBooks); // Show matching results
+	}
+
+	// Creates a new Book object from CSV fields
+	public Book createBook(String[] fields, int index) throws BookException
+	{
+		String genre = fields[5];
+		if(genre == "") genre = null;
+
+		Book book = new Book(fields[0], fields[1], fields[2], Integer.parseInt(fields[3]), 
+				Float.parseFloat(fields[4]), genre, index);
+
+		if(!isBookDataValid(book)) return null;
+		return book;
+	}
+
+	// Validates book information
+	public boolean isBookDataValid(Book b) 
+	{
+		if(b.getTitle() == "") {
+			new BookException("Book must have a title."); return false;
+		} else if(b.getAuthor() == "") {
+			new BookException("Book must have an author."); return false;
+		} else if(b.getOgLanguage() == "") {
+			new BookException("Book must have a language."); return false;
+		} else if(b.getFirstPublished() < 0 || b.getFirstPublished() > 2025) {
+			new BookException("Invalid published year. Must be between 0 and 2025."); return false;
+		} else if(b.getSalesInMillions() < 0) {
+			new BookException("Book sales cannot be negative."); return false;
+		}
+		return true;
+	}
+
+	// Returns a Book object at a specific index
+	public Book findBookByIndex(int index)
+	{
+		return bestSellers.get(index);
+	}
+	
+	// Parses a CSV line into string array of fields, handling quoted text
+	public String[] parseLine(String line) 
+	{
+		String[] fields = new String[NUMCOLS];
+		int index = 0;
+		String field = "";
+		boolean inQuotes = false;
+		
+		for (int i = 0; i < line.length(); ++i) {
+			char ch = line.charAt(i);
+
+			if (ch == '"') {
+				inQuotes = !inQuotes;
+			} else if (ch == ',' && !inQuotes) {
+				fields[index] = field.trim();
+				field = "";
+				index++;
+			} else {
+				field += ch;
+			}
+		}
+		fields[index] = field.trim(); // Add final field
+		return fields;
+	}
+}

@@ -1,0 +1,5 @@
+package BestSeller;
+
+public class BookException {
+
+}
