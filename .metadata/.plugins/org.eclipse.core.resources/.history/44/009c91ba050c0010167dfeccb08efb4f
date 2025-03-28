@@ -5,14 +5,14 @@ package BestSeller;
  */
 
 public class Book {
-		private String title;
-		private String author;
-		private String ogLanguage;
-		private int firstPublished;
-		private float salesInMillions;
-		private String genre;
+		String title;
+		String author;
+		String ogLanguage;
+		int firstPublished;
+		float salesInMillions;
+		String genre;
 
-		private int index; //Position in the booklist
+		int index; //Position in the booklist
 		
 		// Constructor
 		public Book(String title, String author, String ogLanguage, int firstPublished, float salesInMillions, String genre, int index) 
