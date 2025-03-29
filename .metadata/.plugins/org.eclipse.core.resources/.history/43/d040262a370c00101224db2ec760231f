@@ -322,19 +322,20 @@ public class BookList
 	}
 
 	// Validates book information
-	public boolean isBookDataValid(Book b) throws BookException {
-	    if (b.getTitle() == null || b.getTitle().trim().isEmpty()) {
-	        throw new BookException("Book must have a title.");
-	    } else if (b.getAuthor() == null || b.getAuthor().trim().isEmpty()) {
-	        throw new BookException("Book must have an author.");
-	    } else if (b.getOgLanguage() == null || b.getOgLanguage().trim().isEmpty()) {
-	        throw new BookException("Book must have a language.");
-	    } else if (b.getFirstPublished() < 0 || b.getFirstPublished() > 2025) {
-	        throw new BookException("Invalid published year. Must be between 0 and 2025.");
-	    } else if (b.getSalesInMillions() < 0) {
-	        throw new BookException("Book sales cannot be negative.");
-	    }
-	    return true;
+	public boolean isBookDataValid(Book b) throws BookException 
+	{
+		if(b.getTitle() == "") {
+			new BookException("Book must have a title."); return false;
+		} else if(b.getAuthor() == "") {
+			new BookException("Book must have an author."); return false;
+		} else if(b.getOgLanguage() == "") {
+			new BookException("Book must have a language."); return false;
+		} else if(b.getFirstPublished() < 0 || b.getFirstPublished() > 2025) {
+			new BookException("Invalid published year. Must be between 0 and 2025."); return false;
+		} else if(b.getSalesInMillions() < 0) {
+			new BookException("Book sales cannot be negative."); return false;
+		}
+		return true;
 	}
 
 	// Returns a Book object at a specific index

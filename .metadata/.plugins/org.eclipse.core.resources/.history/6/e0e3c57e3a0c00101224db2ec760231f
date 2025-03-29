@@ -322,6 +322,7 @@ public class BookList
 	}
 
 	// Validates book information
+	// Validates book information
 	public boolean isBookDataValid(Book b) throws BookException {
 	    if (b.getTitle() == null || b.getTitle().trim().isEmpty()) {
 	        throw new BookException("Book must have a title.");
@@ -336,6 +337,7 @@ public class BookList
 	    }
 	    return true;
 	}
+
 
 	// Returns a Book object at a specific index
 	public Book findBookByIndex(int index)

@@ -9,7 +9,11 @@ public class BookManager {
     private static BookList bookList = new BookList();
 
     public static void main(String[] args) {
-        BookManager.manageBookList();
+        try {
+            BookManager.manageBookList();
+        } catch (BookException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     private static void manageBookList() {
